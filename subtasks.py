@@ -11,6 +11,76 @@ from nltk.translate import IBMModel2
 import json
 from nltk.translate import phrase_based
 
+def task_1(path):
+    phrase_extraction_corpus_en = []
+    phrase_extraction_corpus_fr = []
+    words_en = set()
+    words_fr = set()
+
+    with open(path,'r') as f:
+        d = json.load(f)
+
+    for sent in d:
+        phrase_extraction_corpus_en.append(sent['en'])
+        phrase_extraction_corpus_fr.append(sent['fr'])
+        fr_words = sent['fr'].split()
+        en_words = sent['en'].split()
+        for word in fr_words:
+            words_fr.add(word)
+        for word in en_words:
+            words_en.add(word)
+        
+    words_en = list(words_en)
+    words_fr = list(words_fr)
+    num_fr = len(words_fr)
+    translation_prob = dict()
+    for en_word in words_en:
+        translation_prob[en_word] = dict()
+        for fr_word in words_fr:
+            translation_prob[en_word][fr_word] = 1 / num_fr
+
+    ## Till convergence part here    
+    num_iterations = 100
+    for i in range(num_iterations):
+        ## Setting count(e|f) to 0 for all e,f
+        count = dict()
+        for en_word in words_en:
+            count[en_word] = dict()
+            for fr_word in words_fr:
+                count[en_word][fr_word] = 0
+        
+        ## Setting up total(f) = 0 for all f 
+        total = dict()
+        for fr_word in words_fr:
+            total[fr_word] = 0
+        
+        ## For all sentence pairs
+        numSentencePairs = len(phrase_extraction_corpus_en)
+        for j in range(numSentencePairs):
+            en_sent = phrase_extraction_corpus_en[j]
+            en_sent = en_sent.split()
+            fr_sent = phrase_extraction_corpus_fr[j]
+            fr_sent = fr_sent.split()
+
+            ## Computing Normalisation
+            s_total = dict() 
+            for e in en_sent:
+                s_total[e] = 0
+                for f in fr_sent:
+                    s_total[e] += translation_prob[e][f]
+            
+            ## Collecting counts
+            for e in en_sent:
+                for f in fr_sent:
+                    count[e][f] += translation_prob[e][f] / s_total[e]
+                    total[f] += translation_prob[e][f] / s_total[e]
+        
+        ## Estimate probabilities
+        for f in words_fr:
+            for e in words_en:
+                translation_prob[e][f] = count[e][f] / total[f]
+
+    return translation_prob
 
 def task_2(path):
     parallel_corpus = []
@@ -45,7 +115,6 @@ def task_2(path):
     #     print("fr_sentence: {}".format(test.words))
     #     print("en_sentence: {}".format(test.mots))
     #     print("alignment: {}".format(test.alignment))
-
     return parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpus_fr
 
 
@@ -86,6 +155,15 @@ def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpu
 
 
 if __name__ == "__main__":
-    file_path = "./data/data2.json"
-    bitext, phrases_en, phrases_fr = task_2(file_path)
-    task_3(bitext, phrases_en, phrases_fr)
+    file_path = "./data/test.json"
+    #bitext, phrases_en, phrases_fr = task_2(file_path)
+    #task_3(bitext, phrases_en, phrases_fr)
+    alignemnts = task_1(file_path)
+    
+    for a in alignemnts:
+        print(a + "  :  " + str(alignemnts[a]))
+        sum = 0
+        for b in alignemnts[a]:
+            sum += alignemnts[a][b]
+        print("sum : " + str(sum))
+        print()
