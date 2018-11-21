@@ -39,7 +39,7 @@ def task_1(path):
         for fr_word in words_fr:
             translation_prob[en_word][fr_word] = 1 / num_fr
 
-    ## Till convergence part here    
+    # Till convergence part here
     num_iterations = 100
     for i in range(num_iterations):
         ## Setting count(e|f) to 0 for all e,f
@@ -49,12 +49,12 @@ def task_1(path):
             for fr_word in words_fr:
                 count[en_word][fr_word] = 0
         
-        ## Setting up total(f) = 0 for all f 
+        #  Setting up total(f) = 0 for all f
         total = dict()
         for fr_word in words_fr:
             total[fr_word] = 0
         
-        ## For all sentence pairs
+        # For all sentence pairs
         numSentencePairs = len(phrase_extraction_corpus_en)
         for j in range(numSentencePairs):
             en_sent = phrase_extraction_corpus_en[j]
@@ -62,27 +62,28 @@ def task_1(path):
             fr_sent = phrase_extraction_corpus_fr[j]
             fr_sent = fr_sent.split()
 
-            ## Computing Normalisation
+            # Computing Normalisation
             s_total = dict() 
             for e in en_sent:
                 s_total[e] = 0
                 for f in fr_sent:
                     s_total[e] += translation_prob[e][f]
             
-            ## Collecting counts
+            # Collecting counts
             for e in en_sent:
                 for f in fr_sent:
                     count[e][f] += translation_prob[e][f] / s_total[e]
                     total[f] += translation_prob[e][f] / s_total[e]
         
-        ## Estimate probabilities
+        # Estimate probabilities
         for f in words_fr:
             for e in words_en:
                 translation_prob[e][f] = count[e][f] / total[f]
 
     return translation_prob
 
-def task_2(path):
+
+def task_2(path, alignments_pred):
     parallel_corpus = []
     phrase_extraction_corpus_en = []
     phrase_extraction_corpus_fr = []
@@ -102,8 +103,17 @@ def task_2(path):
     print("******1*******")
     # for test in parallel_corpus:
     #     print("fr_sentence: {}".format(test.words))
-    #     print("en_sentence: {}".format(test.mots))
-    #     print("alignment: {}".format(test.alignment))
+        # print("en_sentence: {}".format(test.mots))
+        # print("alignment: {}".format(test.alignment))
+
+    for sent in parallel_corpus:
+        for w in sent.words:
+            for t in sent.mots:
+                print("test pairs: {}:{}".format(w, t))
+                print("actual: {}".format(ibm1.translation_table[w][t]))
+                print("predicted: {}".format(alignemnts_pred[t][w]))
+
+
 
     # MODEL-2
 
@@ -115,6 +125,7 @@ def task_2(path):
     #     print("fr_sentence: {}".format(test.words))
     #     print("en_sentence: {}".format(test.mots))
     #     print("alignment: {}".format(test.alignment))
+
     return parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpus_fr
 
 
@@ -155,15 +166,19 @@ def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpu
 
 
 if __name__ == "__main__":
-    file_path = "./data/test.json"
+    file_path = "./data/data1.json"
     #bitext, phrases_en, phrases_fr = task_2(file_path)
     #task_3(bitext, phrases_en, phrases_fr)
-    alignemnts = task_1(file_path)
+    alignemnts_pred = task_1(file_path)
+    task_2(file_path, alignemnts_pred)
+
+
+
     
-    for a in alignemnts:
-        print(a + "  :  " + str(alignemnts[a]))
-        sum = 0
-        for b in alignemnts[a]:
-            sum += alignemnts[a][b]
-        print("sum : " + str(sum))
-        print()
+    # for a in alignemnts:
+    #     print(a + "  :  " + str(alignemnts[a]))
+    #     sum = 0
+    #     for b in alignemnts[a]:
+    #         sum += alignemnts[a][b]
+    #     print("sum : " + str(sum))
+    #     print()
