@@ -106,13 +106,13 @@ def task_2(path, alignments_pred):
         # print("en_sentence: {}".format(test.mots))
         # print("alignment: {}".format(test.alignment))
 
-    for sent in parallel_corpus:
-        for w in sent.words:
-            for t in sent.mots:
-                print("test pairs: {}:{}".format(w, t))
-                print("actual: {}".format(ibm1.translation_table[w][t]))
-                print("predicted: {}".format(alignemnts_pred[t][w]))
-
+    for sent1 in parallel_corpus:
+        for sent2 in parallel_corpus:
+            for w in sent1.words:
+                for t in sent2.mots:
+                    print("test pairs: {}:{}".format(w, t))
+                    print("actual: {}".format(ibm1.translation_table[w][t]))
+                    print("predicted: {}".format(alignemnts_pred[t][w]))
 
 
     # MODEL-2
