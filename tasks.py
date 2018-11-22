@@ -106,13 +106,13 @@ def task_2(path, alignments_pred):
         # print("en_sentence: {}".format(test.mots))
         # print("alignment: {}".format(test.alignment))
 
-    for sent1 in parallel_corpus:
-        for sent2 in parallel_corpus:
-            for w in sent1.words:
-                for t in sent2.mots:
-                    print("test pairs: {}:{}".format(w, t))
-                    print("actual: {}".format(ibm1.translation_table[w][t]))
-                    print("predicted: {}".format(alignemnts_pred[t][w]))
+    # for sent1 in parallel_corpus:
+    #     for sent2 in parallel_corpus:
+    #         for w in sent1.words:
+    #             for t in sent2.mots:
+    #                 print("test pairs: {}:{}".format(w, t))
+    #                 print("actual: {}".format(ibm1.translation_table[w][t]))
+    #                 print("predicted: {}".format(alignemnts_pred[t][w]))
 
 
     # MODEL-2
@@ -148,7 +148,7 @@ def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpu
         for _, _, e_ph, f_ph in sorted(phrases):
             # print((e_ph,f_ph))
             # print(f_ph)
-            en_fr_phrases.append((e_ph,f_ph))
+            en_fr_phrases.append((e_ph, f_ph))
             fr_phrases.append(f_ph)
 
     en_fr_phrases_count = Counter(en_fr_phrases)
@@ -158,7 +158,7 @@ def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpu
     for e, f in en_fr_phrases:
         result.append(((en_fr_phrases_count[(e, f)]/fr_phrases_count[f]), (e, f)))
 
-    for i in reversed(sorted(result)):
+    for i in reversed(sorted(set(result))):
         print(i)
 
     # print(en_fr_phrases)
@@ -166,15 +166,13 @@ def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpu
 
 
 if __name__ == "__main__":
-    file_path = "./data/data1.json"
+    file_path = "./data/data3.json"
     #bitext, phrases_en, phrases_fr = task_2(file_path)
     #task_3(bitext, phrases_en, phrases_fr)
     alignemnts_pred = task_1(file_path)
-    task_2(file_path, alignemnts_pred)
+    a, b, c = task_2(file_path, alignemnts_pred)
+    task_3(a, b, c)
 
-
-
-    
     # for a in alignemnts:
     #     print(a + "  :  " + str(alignemnts[a]))
     #     sum = 0
