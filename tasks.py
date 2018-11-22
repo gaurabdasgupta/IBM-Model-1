@@ -11,9 +11,10 @@ from nltk.translate import IBMModel2
 import json
 from nltk.translate import phrase_based
 
+
 def task_1(path):
     phrase_extraction_corpus_en = []
-    phrase_extraction_corpus_fr = []
+    phrase_extraction_corpus_fr = []    
     words_en = set()
     words_fr = set()
 
@@ -80,7 +81,29 @@ def task_1(path):
             for e in words_en:
                 translation_prob[e][f] = count[e][f] / total[f]
 
-    return translation_prob
+        alignments = dict()
+        for sentIndex in range(len(phrase_extraction_corpus_en)):
+            en_sent = phrase_extraction_corpus_en[sentIndex]
+            dict_key = en_sent
+            fr_sent = phrase_extraction_corpus_fr[sentIndex]
+
+            en_sent = en_sent.split()
+            fr_sent = fr_sent.split()
+
+            align = []
+            for en_index in range(len(en_sent)):
+                max_fr_index = 0
+                enWord = en_sent[en_index]
+                for fr_index in range(len(fr_sent)):
+                    frWord = fr_sent[fr_index]
+                    probMax = translation_prob[enWord][fr_sent[max_fr_index]]
+                    if probMax < translation_prob[enWord][frWord]:
+                        max_fr_index = fr_index
+                align.append((en_index, max_fr_index))
+
+            alignments[dict_key] = align
+
+    return alignments
 
 
 def task_2(path, alignments_pred):
