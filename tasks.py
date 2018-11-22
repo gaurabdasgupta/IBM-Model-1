@@ -10,17 +10,25 @@ from nltk.translate import IBMModel1
 from nltk.translate import IBMModel2
 import json
 from nltk.translate import phrase_based
-
+import time
+import sys
 
 def task_1(path):
+    """
+    Task 1: Implemented the IBM Model 1 and EM Algorithm
+    :param path: path for data
+    :return: list of tuples: alignments and execution time
+    """
     phrase_extraction_corpus_en = []
-    phrase_extraction_corpus_fr = []    
+    phrase_extraction_corpus_fr = []
     words_en = set()
     words_fr = set()
-
+    # read file
     with open(path,'r') as f:
         d = json.load(f)
 
+    start = time.process_time()
+    # store words in list
     for sent in d:
         phrase_extraction_corpus_en.append(sent['en'])
         phrase_extraction_corpus_fr.append(sent['fr'])
@@ -30,7 +38,7 @@ def task_1(path):
             words_fr.add(word)
         for word in en_words:
             words_en.add(word)
-        
+    # compute probabilities
     words_en = list(words_en)
     words_fr = list(words_fr)
     num_fr = len(words_fr)
@@ -43,7 +51,8 @@ def task_1(path):
     # Till convergence part here
     num_iterations = 100
     for i in range(num_iterations):
-        ## Setting count(e|f) to 0 for all e,f
+
+        # Setting count(e|f) to 0 for all e,f
         count = dict()
         for en_word in words_en:
             count[en_word] = dict()
@@ -81,6 +90,7 @@ def task_1(path):
             for e in words_en:
                 translation_prob[e][f] = count[e][f] / total[f]
 
+        # Forming alignments
         alignments = dict()
         for sentIndex in range(len(phrase_extraction_corpus_en)):
             en_sent = phrase_extraction_corpus_en[sentIndex]
@@ -102,11 +112,19 @@ def task_1(path):
                 align.append((en_index, max_fr_index))
 
             alignments[dict_key] = align
+    end = time.process_time()
+    exec_time = str(end-start)
 
-    return alignments
+    return alignments, exec_time
 
 
 def task_2(path, alignments_pred):
+    """
+    Task 2: Comparing our alignment results with that of NLTK library's output of IBM Model 1 and IBM Model 2
+    :param path: path for data
+    :param alignments_pred: alignments computed in task 1
+    :return: parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpus_fr
+    """
     parallel_corpus = []
     phrase_extraction_corpus_en = []
     phrase_extraction_corpus_fr = []
@@ -118,88 +136,93 @@ def task_2(path, alignments_pred):
         phrase_extraction_corpus_fr.append(sent['fr'])
         fr_words = sent['fr'].split()
         en_words = sent['en'].split()
-        parallel_corpus.append(AlignedSent(fr_words, en_words))
+        parallel_corpus.append(AlignedSent(en_words, fr_words))
+
+
+    # MODEL - 2
+
+    print("******IBM Model-2*******")
+
+    ibm2 = IBMModel2(parallel_corpus, 50)
+    for test in parallel_corpus:
+        print("en_sentence: {}".format(test.words))
+        print("fr_sentence: {}".format(test.mots))
+        try:
+            print("nltk alignment: {}".format(test.alignment))
+        except:
+            print("nltk ibm model 2 alignment failed")
 
     #  MODEL-1
 
-    ibm1 = IBMModel1(parallel_corpus, 20)
+    ibm1 = IBMModel1(parallel_corpus, 50)
     print("******IBM Model 1*******")
     for test in parallel_corpus:
-        print("fr_sentence: {}".format(test.words))
-        print("en_sentence: {}".format(test.mots))
-        print("alignment: {}".format(test.alignment))
-    #
-    # for sent1 in parallel_corpus:
-    #     for sent2 in parallel_corpus:
-    #         for w in sent1.words:
-    #             for t in sent2.mots:
-    #                 print("test pairs: {}:{}".format(w, t))
-    #                 print("actual: {}".format(ibm1.translation_table[w][t]))
-    #                 print("predicted: {}".format(alignemnts_pred[t][w]))
-
-
-    #  MODEL - 2
-
-    # ibm2 = IBMModel2(parallel_corpus, 20)
-    #
-    # # print(ibm1.translation_table['maison']['house'])
-    # print("******2*******")
-    # for test in parallel_corpus:
-    #     print("fr_sentence: {}".format(test.words))
-    #     print("en_sentence: {}".format(test.mots))
-    #     print("alignment: {}".format(test.alignment))
+        print("en_sentence: {}".format(test.words))
+        print("fr_sentence: {}".format(test.mots))
+        try:
+            print("nltk alignment: {}".format(test.alignment))
+        except:
+            print("nltk ibm model 1 alignment failed")
+        str_test = ' '.join(word for word in test.words)
+        print("predicted alignment: {}\n".format(alignemnts_pred[str_test]))
 
     return parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpus_fr
 
 
-def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpus_fr):
+def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpus_fr, alignments_pred):
+    """
+    Task 3: Utility for calculating phrase based extraction scoring
+    :param parallel_corpus: Processed Bitext
+    :param phrase_extraction_corpus_en
+    :param phrase_extraction_corpus_fr
+    :param alignments_pred: Alignment list computed in task 1
+    :return: execution time
+    """
 
+    start = time.process_time()
     alignments = []
+    print("Phrase Extraction")
 
-    for sent_pair in parallel_corpus:
-        # print(sent_pair.words)
-        # print(sent_pair.alignment)
-        alignment = []
-        al = sent_pair.alignment
-        for s in al:
-            alignment.append(s)
-        alignments.append(alignment)
     en_fr_phrases = []
     fr_phrases = []
+    # print(phrase_extraction_corpus_en)
     for i in range(len(phrase_extraction_corpus_en)):
-        phrases = phrase_based.phrase_extraction(phrase_extraction_corpus_en[i], phrase_extraction_corpus_fr[i], alignments[i])
+        # print(alignments_pred[phrase_extraction_corpus_en[i]])
+        # print(alignments[i])
+        # srctext = "michael assumes that he will stay in the house"
+        # trgtext = "michael geht davon aus , dass er im haus bleibt"
+        # alignment = [(0, 0), (1, 1), (1, 2), (1, 3), (2, 5), (3, 6), (4, 9), (5, 9), (6, 7), (7, 7), (8, 8)]
+        # phrases = phrase_based.phrase_extraction(srctext, trgtext, alignment)
+        # print(phrase_extraction_corpus_en[i])
+        phrases = phrase_based.phrase_extraction(phrase_extraction_corpus_en[i], phrase_extraction_corpus_fr[i], alignments_pred[phrase_extraction_corpus_en[i]])
+        # print("here")
+        # for i in sorted(phrases):
+        #     print(i)
         for _, _, e_ph, f_ph in sorted(phrases):
-            # print((e_ph,f_ph))
-            # print(f_ph)
             en_fr_phrases.append((e_ph, f_ph))
             fr_phrases.append(f_ph)
 
     en_fr_phrases_count = Counter(en_fr_phrases)
     fr_phrases_count = Counter(fr_phrases)
     result = []
-
+    # print(en_fr_phrases_count)
+    # print(fr_phrases_count)
     for e, f in en_fr_phrases:
         result.append(((en_fr_phrases_count[(e, f)]/fr_phrases_count[f]), (e, f)))
 
     for i in reversed(sorted(set(result))):
         print(i)
 
-    # print(en_fr_phrases)
-    # print(fr_phrases)
+    end = time.process_time()
+    exec_time = str(end-start)
+
+    return exec_time
 
 
 if __name__ == "__main__":
-    file_path = "./data/data2.json"
-    #bitext, phrases_en, phrases_fr = task_2(file_path)
-    #task_3(bitext, phrases_en, phrases_fr)
-    alignemnts_pred = task_1(file_path)
-    a, b, c = task_2(file_path, alignemnts_pred)
-    # task_3(a, b, c)
-
-    # for a in alignemnts:
-    #     print(a + "  :  " + str(alignemnts[a]))
-    #     sum = 0
-    #     for b in alignemnts[a]:
-    #         sum += alignemnts[a][b]
-    #     print("sum : " + str(sum))
-    #     print()
+    file_path = str(sys.argv[1])
+    alignemnts_pred, t1_time = task_1(file_path)
+    print("task 1 CPU time: {}".format(t1_time))
+    parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpus_fr = task_2(file_path, alignemnts_pred)
+    t3_time = task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpus_fr, alignemnts_pred)
+    print("task 3 CPU time : {}".format(t3_time))
