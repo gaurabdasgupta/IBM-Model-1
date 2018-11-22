@@ -100,12 +100,12 @@ def task_2(path, alignments_pred):
     #  MODEL-1
 
     ibm1 = IBMModel1(parallel_corpus, 20)
-    print("******1*******")
-    # for test in parallel_corpus:
-    #     print("fr_sentence: {}".format(test.words))
-        # print("en_sentence: {}".format(test.mots))
-        # print("alignment: {}".format(test.alignment))
-
+    print("******IBM Model 1*******")
+    for test in parallel_corpus:
+        print("fr_sentence: {}".format(test.words))
+        print("en_sentence: {}".format(test.mots))
+        print("alignment: {}".format(test.alignment))
+    #
     # for sent1 in parallel_corpus:
     #     for sent2 in parallel_corpus:
     #         for w in sent1.words:
@@ -115,11 +115,11 @@ def task_2(path, alignments_pred):
     #                 print("predicted: {}".format(alignemnts_pred[t][w]))
 
 
-    # MODEL-2
+    #  MODEL - 2
 
     # ibm2 = IBMModel2(parallel_corpus, 20)
-
-    # print(ibm1.translation_table['maison']['house'])
+    #
+    # # print(ibm1.translation_table['maison']['house'])
     # print("******2*******")
     # for test in parallel_corpus:
     #     print("fr_sentence: {}".format(test.words))
@@ -166,12 +166,12 @@ def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpu
 
 
 if __name__ == "__main__":
-    file_path = "./data/data3.json"
+    file_path = "./data/data2.json"
     #bitext, phrases_en, phrases_fr = task_2(file_path)
     #task_3(bitext, phrases_en, phrases_fr)
     alignemnts_pred = task_1(file_path)
     a, b, c = task_2(file_path, alignemnts_pred)
-    task_3(a, b, c)
+    # task_3(a, b, c)
 
     # for a in alignemnts:
     #     print(a + "  :  " + str(alignemnts[a]))
