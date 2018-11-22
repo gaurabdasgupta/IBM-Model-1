@@ -40,7 +40,7 @@ def task_1(path):
             translation_prob[en_word][fr_word] = 1 / num_fr
 
     ## Till convergence part here    
-    num_iterations = 100
+    num_iterations = 20
     for i in range(num_iterations):
         ## Setting count(e|f) to 0 for all e,f
         count = dict()
@@ -80,7 +80,29 @@ def task_1(path):
             for e in words_en:
                 translation_prob[e][f] = count[e][f] / total[f]
 
-    return translation_prob
+    #print(translation_prob)
+    #Make alignement dicts
+    alignments = dict()
+    for sentIndex in range(len(phrase_extraction_corpus_en)):
+        en_sent = phrase_extraction_corpus_en[sentIndex]
+        dict_key = en_sent
+        fr_sent = phrase_extraction_corpus_fr[sentIndex]
+
+        en_sent = en_sent.split()
+        fr_sent = fr_sent.split()
+
+        align = []
+        for en_index in range(len(en_sent)):
+            max_fr_index = 0
+            enWord = en_sent[en_index]
+            for fr_index in range(len(fr_sent)):
+                frWord = fr_sent[fr_index]
+                probMax = translation_prob[enWord][fr_sent[max_fr_index]]
+                if probMax < translation_prob[enWord][frWord]:
+                    max_fr_index = fr_index
+            align.append( (en_index,max_fr_index) )
+        alignments[dict_key] = align
+    return alignments
 
 def task_2(path):
     parallel_corpus = []
@@ -155,15 +177,8 @@ def task_3(parallel_corpus, phrase_extraction_corpus_en, phrase_extraction_corpu
 
 
 if __name__ == "__main__":
-    file_path = "./data/test.json"
+    file_path = "./data/data2.json"
     #bitext, phrases_en, phrases_fr = task_2(file_path)
     #task_3(bitext, phrases_en, phrases_fr)
-    alignemnts = task_1(file_path)
-    
-    for a in alignemnts:
-        print(a + "  :  " + str(alignemnts[a]))
-        sum = 0
-        for b in alignemnts[a]:
-            sum += alignemnts[a][b]
-        print("sum : " + str(sum))
-        print()
+    alignments = task_1(file_path)
+    print(alignments)
